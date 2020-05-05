@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "kuma"
+version = "0.1.0"
+description = "Pandas user interface"
+authors = ["Navin Karkera <navin@disroot.org>"]
+license = "AGPL-3.0-or-later"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.54.1"
+pandas = "^1.0.3"
+uvicorn = "^0.11.3"
+loguru = "^0.4.1"
+databases = { version = "^0.2.6", extras = ["sqlite"] }
+pydantic = { version = "^1.4", extras = ["email"] }
+pyjwt = "^1.7"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+isort = "^4.3.21"
+pytest = "^5.4.1"
+pytest-asyncio = "^0.10.0"
+pytest-env = "^0.6.2"
+mypy = "^0.770"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
+
+[tool.black]
+line-length = 88
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
