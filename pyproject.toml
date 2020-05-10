@@ -14,6 +14,8 @@ loguru = "^0.4.1"
 databases = { version = "^0.2.6", extras = ["sqlite"] }
 pydantic = { version = "^1.4", extras = ["email"] }
 pyjwt = "^1.7"
+passlib = { version = "^1.7.2", extras = ["bcrypt"] }
+alembic = "^1.4.2"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
@@ -23,12 +25,8 @@ pytest-asyncio = "^0.10.0"
 pytest-env = "^0.6.2"
 mypy = "^0.770"
 
-[build-system]
-requires = ["poetry>=1.0"]
-build-backend = "poetry.masonry.api"
-
 [tool.black]
-line-length = 88
+line-length = 100
 exclude = '''
 
 (
@@ -46,3 +44,7 @@ exclude = '''
   )/
 )
 '''
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
