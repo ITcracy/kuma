@@ -19,7 +19,12 @@ def get_code(form: dict, mod):
             mod = "df"
     args = [f'"{x}"' if isinstance(x, str) else f"{x}" for x in form.get("args", [])]
     args = ", ".join(args)
-    kwargs = ", ".join([f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}" for k, v in form.get("kwargs", {}).items()])
+    kwargs = ", ".join(
+        [
+            f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}"
+            for k, v in form.get("kwargs", {}).items()
+        ]
+    )
     call_args = ", ".join([x for x in (args, kwargs) if x])
     code = f"{mod}.{form['func']}({call_args})"
     print(code)

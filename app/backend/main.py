@@ -1,20 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
-from app.backend.base.errors import http_error_handler, http422_error_handler
-from app.backend.base.routes import router as api_router
+from app.backend.base.errors import http422_error_handler, http_error_handler
 from app.backend.core.config import app_config
 
-from .db.events import close_db_connection, connect_to_db
+from .api import router as api_router
+from .core.events import close_db_connection, connect_to_db
 
 
 def get_application() -> FastAPI:
     application = FastAPI(
-        title=app_config.PROJECT_NAME,
-        debug=app_config.DEBUG,
-        version=app_config.VERSION,
+        title=app_config.PROJECT_NAME, debug=app_config.DEBUG, version=app_config.VERSION,
     )
 
     application.add_middleware(
