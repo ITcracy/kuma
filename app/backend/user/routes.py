@@ -20,6 +20,7 @@ router.init_crud(
     },
 )
 
+
 @router.post("/login", response_model=UserWithToken, name="auth:login")
 async def login(
     user_login: UserInRequest = Body(..., embed=True, alias="user"), user_ops: UserOps = Depends(),
@@ -41,7 +42,10 @@ async def login(
 
 
 @router.post(
-    "/register", status_code=status.HTTP_201_CREATED, response_model=UserWithToken, name="auth:register",
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserWithToken,
+    name="auth:register",
 )
 async def register(
     user_create: UserInRequest = Body(..., embed=True, alias="user"),
