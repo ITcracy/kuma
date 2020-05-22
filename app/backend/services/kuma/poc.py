@@ -1,6 +1,6 @@
-import orjson
 from queue import Empty
 
+from loguru import logger
 from jupyter_client import KernelManager, KernelClient
 
 from app.backend.services.kuma.code_generator import PandasCodeGenerator
@@ -13,10 +13,11 @@ def execute_code(code: str, client: KernelClient):
     while state != "idle" and client.is_alive():
         try:
             msg = client.get_iopub_msg(msg_id, timeout=1)
-            # print(msg)
             if not "content" in msg:
                 continue
             content = msg["content"]
+            if msg["msg_type"] == "error":
+                logger.opt(exception=True).error("\n".join(content["traceback"]))
             if "data" in content:
                 data = content["data"]
             elif "text" in content:
