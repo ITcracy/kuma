@@ -1,8 +1,15 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class PandasCodeGenerator:
-    def __init__(self, request: Dict[str, Any], save: bool = False, display_rows: int = 5):
+    def __init__(
+        self,
+        request: Dict[str, Any],
+        save: bool = False,
+        display_rows: int = 5,
+        css_classes: List[str] = None,
+        variable: str = "df",
+    ):
         """
         Converts json request to code
 
@@ -11,6 +18,9 @@ class PandasCodeGenerator:
         self.request = request
         self.save = save
         self.display_rows = display_rows
+        css_classes = " ".join(css_classes)
+        self.css_classes = f'"{css_classes}"'
+        self.variable = variable if save else "_current_state"
 
     def validate(self):
         if not "func" in self.request:
@@ -47,28 +57,26 @@ class PandasCodeGenerator:
             raise ValueError("Only 'df' of 'pd' mod is allowed")
         return mod
 
-    def full_code(self) -> str:
+    def user_code(self) -> str:
         mod = self.obj_or_module()
         func = self.request["func"]
         call_args = self.call_args()
-        code = f"{mod}.{func}({call_args})"
-        if self.save:
-            code = self.post_code(code, "df")
-        else:
-            code = self.post_code(code, "current_state")
+        code = f"{self.variable} = {mod}.{func}({call_args})"
         return code
 
-    def post_code(self, code: str, var: str) -> str:
-        code = f"{var} = {code}"
-        css_classes = '"table is-fullwidth is-hoverable"'
-        pd_html = f"print({var}.head({self.display_rows}).to_html(classes={css_classes}, show_dimensions=True))"
-        series_html = f"print({var}.to_frame().head({self.display_rows}).to_html(classes={css_classes}, show_dimensions=True))"
-        code = f"{code}\nif isinstance({var}, pd.DataFrame):"
+    def meta_code(self, code: str) -> str:
+        pd_html = f"print({self.variable}.head({self.display_rows}).to_html(" \
+                  f"classes={self.css_classes}, show_dimensions=True))"
+        series_html = f"print({self.variable}.to_frame().head({self.display_rows}).to_html(" \
+                      f"classes={self.css_classes}, show_dimensions=True))"
+        code = f"{code}\nif isinstance({self.variable}, pd.DataFrame):"
         code = f"{code}\n\t{pd_html}"
-        code = f"{code}\nelif isinstance({var}, pd.Series):"
+        code = f"{code}\nelif isinstance({self.variable}, pd.Series):"
         code = f"{code}\n\t{series_html}"
         return code
 
     def process(self) -> str:
         self.validate()
-        return self.full_code()
+        code = self.user_code()
+        code = self.meta_code(code)
+        return code

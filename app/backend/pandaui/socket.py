@@ -1,11 +1,11 @@
 from fastapi import APIRouter, WebSocket
 from fastapi.responses import HTMLResponse
-from jupyter_client import KernelClient, KernelManager
 from loguru import logger
 from starlette.websockets import WebSocketDisconnect
 
-from app.backend.services.kuma.code_generator import PandasCodeGenerator
-from app.backend.services.kuma.poc import execute_code
+from app.backend.core.config import app_config
+from app.backend.services.kuma.main import KumaSession
+from app.backend.services.kuma.executor import JupyterExecutor
 
 router = APIRouter()
 
@@ -20,9 +20,10 @@ html = """
     <body>
         <h1>WebSocket Chat</h1>
         <form action="" onsubmit="sendMessage(event)">
-            <input type="text" id="modText" autocomplete="off"/>
-            <input type="text" id="funcText" autocomplete="off"/>
-            <input type="text" id="argText" autocomplete="off"/>
+            <input type="text" id="modText" autocomplete="on" placeholder="Module or Var"/>
+            <input type="text" id="funcText" autocomplete="on" placeholder="Function"/>
+            <input type="text" id="argText" autocomplete="on" placeholder="args"/>
+            <input type="checkbox" id="save" name="save" value="save">
             <button>Send</button>
         </form>
         <div id='messages'>
@@ -39,7 +40,9 @@ html = """
                 var mod = document.getElementById("modText")
                 var func = document.getElementById("funcText")
                 var arg = document.getElementById("argText")
-                var obj = {"func" : func.value, "mod": mod.value, "args": [arg.value]}
+                var kwargs = document.getElementById("kwargText")
+                var save = document.getElementById("save")
+                var obj = {"func" : func.value, "mod": mod.value, "args": [arg.value], "save": save.checked}
                 ws.send(JSON.stringify(obj))
                 event.preventDefault()
             }
@@ -57,18 +60,18 @@ async def get():
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    km = KernelManager()
-    km.start_kernel()
-    c = km.client()
-    execute_code("import pandas as pd", c)
+    session = KumaSession()
+    executor = await JupyterExecutor.new()
     try:
         while True:
             data = await websocket.receive_json()
-            code = PandasCodeGenerator(data, save=True, display_rows=15).process()
-            df = execute_code(code, c)
-            await websocket.send_text(f"{df}")
+            save = data["save"]
+            code = session.code(data, save=save, display_rows=10)
+            result = await executor.execute(code)
+            await websocket.send_text(f"{result}")
     except WebSocketDisconnect:
         logger.info(f"Client disconnected")
     finally:
-        logger.info("Shuting down Kernel")
-        km.shutdown_kernel()
+        logger.info("Shutting down Kernel")
+        await executor.shutdown()
+        session.save(f"{app_config.DATA_DIR}/untitled.ipynb")

@@ -25,6 +25,7 @@ class BaseConfig:
     JWT_SUBJECT = "access"
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # one week
+    DATA_DIR = "data"
     # logging configuration
     LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
     logging.basicConfig(handlers=[InterceptHandler(level=LOGGING_LEVEL)], level=LOGGING_LEVEL)
