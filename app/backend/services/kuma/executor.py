@@ -7,19 +7,43 @@ from loguru import logger
 class JupyterExecutor:
     @classmethod
     async def new(cls):
+        """
+        Initiates jupyter kernel and client, and returns an instance of JupyterExecutor
+
+        Returns
+        -------
+        self
+        """
         self = JupyterExecutor()
         await self.start()
         await self._startup_code()
         return self
 
     async def start(self):
+        """
+        Starts jupyter kernel and adds a manager and client instance to self
+        """
         self.manager, self.client = await start_new_async_kernel()
 
     async def _startup_code(self):
+        """
+        Executes basic startup code required for the kernel to execute user code
+        """
         code_str = "import pandas as pd"
         await self.execute(code_str)
 
     async def execute(self, code: str) -> str:
+        """
+        Executes code in jupyter kernel and returns result in str format
+        Parameters
+        ----------
+        code: str
+            Python code in str format
+
+        Returns
+        -------
+        str
+        """
         msg_id = self.client.execute(code)
         state = "busy"
         data = {}
@@ -44,5 +68,8 @@ class JupyterExecutor:
         return data
 
     async def shutdown(self):
+        """
+        Shutdown jupyter kernel and stop all channels from jupyter client
+        """
         await self.manager.shutdown_kernel()
         self.client.stop_channels()

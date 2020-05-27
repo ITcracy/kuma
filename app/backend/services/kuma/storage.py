@@ -1,7 +1,7 @@
 import abc
 
 import nbformat.v4 as notebook
-from nbformat import write as write_notebook
+from nbformat import write as write_notebook, read as read_notebook
 
 
 class FileStorageBackendInterface(metaclass=abc.ABCMeta):
@@ -44,21 +44,59 @@ class FileStorageBackendInterface(metaclass=abc.ABCMeta):
 
 
 class NotebookStorageBackend(FileStorageBackendInterface):
-    def __init__(self):
-        self.notebook = notebook.new_notebook()
-        self.notebook["cells"] = []
+    def __init__(self, path_to_notebook: str = None):
+        """
+        Storage backend using jupyter notebook as store
+        """
+        if path_to_notebook:
+            self.notebook = read_notebook(path_to_notebook, as_version=4)
+        else:
+            self.notebook = notebook.new_notebook()
+            self.notebook["cells"] = []
 
-    def step(self, code: str):
+    def step(self, code: str) -> int:
+        """
+        Takes user code and writes to a cell of notebook
+
+        Parameters
+        ----------
+        code: str
+
+        Returns
+        -------
+        int, index position of code in notebook
+
+        """
         self.notebook["cells"].append(
             notebook.new_code_cell(code)
         )
         return len(self.notebook["cells"]) - 1
 
     def fetch_steps(self, start: int = None, end: int = None) -> str:
-        code = self.notebook["cells"][start:end]
-        return code["source"]
+        """
+        Fetches a range of steps based on start and end index.
+
+        Parameters
+        ----------
+        start: int
+        end: int
+
+        Returns
+        -------
+        str,
+        """
+        cells = self.notebook["cells"][start:end]
+        code = [cell["source"] for cell in cells]
+        return "\n".join(code)
 
     def save(self, file_path: str):
+        """
+        Saves code to a notebook
+
+        Parameters
+        ----------
+        file_path: Path to file
+        """
         if not file_path.endswith(".ipynb"):
             raise TypeError("Incorrect file extension for python notebook")
         write_notebook(self.notebook, file_path)
