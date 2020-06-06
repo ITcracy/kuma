@@ -7,13 +7,15 @@ from nbformat import write as write_notebook, read as read_notebook
 class FileStorageBackendInterface(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, "step") and
-                callable(subclass.step) and
-                hasattr(subclass, "fetch_step") and
-                callable(subclass.fetch_step) and
-                hasattr(subclass, "save") and
-                callable(subclass.save) or
-                NotImplemented)
+        return (
+            hasattr(subclass, "step")
+            and callable(subclass.step)
+            and hasattr(subclass, "fetch_step")
+            and callable(subclass.fetch_step)
+            and hasattr(subclass, "save")
+            and callable(subclass.save)
+            or NotImplemented
+        )
 
     @abc.abstractmethod
     def step(self, code: str) -> int:
@@ -67,9 +69,7 @@ class NotebookStorageBackend(FileStorageBackendInterface):
         int, index position of code in notebook
 
         """
-        self.notebook["cells"].append(
-            notebook.new_code_cell(code)
-        )
+        self.notebook["cells"].append(notebook.new_code_cell(code))
         return len(self.notebook["cells"]) - 1
 
     def fetch_steps(self, start: int = None, end: int = None) -> str:

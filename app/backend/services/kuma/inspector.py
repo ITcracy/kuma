@@ -2,6 +2,7 @@ import inspect
 import orjson
 from typing import Any, Callable, Dict
 
+from docstring_parser import parse
 from loguru import logger
 
 
@@ -16,6 +17,7 @@ class Inspector:
         """
         self.obj = obj
         self._functions = None
+        self.unique_types = set()
 
     @property
     def functions(self) -> Dict[str, Dict]:
@@ -39,7 +41,7 @@ class Inspector:
                 )
                 members = inspect.getmembers(self.obj.__class__, inspect.isfunction)
             result = {
-                member[0]: Inspector.get_default_args(member[1])
+                member[0]: self.get_default_args(member[1])
                 for member in members
                 if Inspector.is_public(member[0])
             }
@@ -61,8 +63,7 @@ class Inspector:
         """
         return True if not obj.startswith("_") else False
 
-    @staticmethod
-    def get_default_args(func: Callable) -> Dict:
+    def get_default_args(self, func: Callable) -> Dict:
         """
         Extracts arguments and its default values from a function
 
@@ -77,14 +78,22 @@ class Inspector:
         if not callable(func):
             raise TypeError(f"{func} is not a callable object")
         signature = inspect.signature(func)
-        args = {}
-        for k, v in signature.parameters.items():
-            if v.default is inspect.Parameter.empty:
-                args[k] = v.kind.name
-            else:
-                args[k] = v.default
+        doc = inspect.getdoc(func)
+        parsed_doc = parse(doc)
+        parameter_types = {
+            param.arg_name: param.type_name.split(", default")[0] if param.type_name else None
+            for param in parsed_doc.params
+        }
+        self.unique_types = self.unique_types.union(set(parameter_types.values()))
+        args = {
+            k: {
+                "type_name": parameter_types.get(k),
+                "default": v.kind.name if v.default is inspect.Parameter.empty else v.default,
+            }
+            for k, v in signature.parameters.items()
+        }
         try:
             orjson.dumps(args)
             return args
         except:
-            logger.warning(f"Ignoring {args} as it is not json compatible")
+            logger.warning(f"Ignoring {func}\n{args} as it is not json compatible")
