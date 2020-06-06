@@ -133,10 +133,14 @@ class PandasCodeGenerator:
         -------
             str
         """
-        pd_html = f"print({self.variable}.head({self.display_rows}).to_html(" \
-                  f"classes={self.css_classes}, show_dimensions=True))"
-        series_html = f"print({self.variable}.to_frame().head({self.display_rows}).to_html(" \
-                      f"classes={self.css_classes}, show_dimensions=True))"
+        pd_html = (
+            f"print({self.variable}.head({self.display_rows}).to_html("
+            f"classes={self.css_classes}, show_dimensions=True))"
+        )
+        series_html = (
+            f"print({self.variable}.to_frame().head({self.display_rows}).to_html("
+            f"classes={self.css_classes}, show_dimensions=True))"
+        )
         code = f"if isinstance({self.variable}, pd.DataFrame):"
         code = f"{code}\n\t{pd_html}"
         code = f"{code}\nelif isinstance({self.variable}, pd.Series):"
