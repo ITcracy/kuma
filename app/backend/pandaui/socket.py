@@ -70,7 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
             result = await executor.execute(code)
             await websocket.send_text(f"{result}")
     except WebSocketDisconnect:
-        logger.info(f"Client disconnected")
+        logger.info("Client disconnected")
     finally:
         logger.info("Shutting down Kernel")
         await executor.shutdown()
