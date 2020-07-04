@@ -7,7 +7,7 @@ from loguru import logger
 
 
 class Inspector:
-    def __init__(self, obj: Any, save: bool = False):
+    def __init__(self, obj: Any, mapping: Dict[str, Any], save: bool = False):
         """
         Inspects objects/class and returns related functions etc.
 
@@ -17,7 +17,7 @@ class Inspector:
         """
         self.obj = obj
         self._functions = None
-        self.unique_types = set()
+        self.mapping = mapping
 
     @property
     def functions(self) -> Dict[str, Dict]:
@@ -84,16 +84,16 @@ class Inspector:
             param.arg_name: param.type_name.split(", default")[0] if param.type_name else None
             for param in parsed_doc.params
         }
-        self.unique_types = self.unique_types.union(set(parameter_types.values()))
         args = {
             k: {
                 "type_name": parameter_types.get(k),
                 "default": v.kind.name if v.default is inspect.Parameter.empty else v.default,
+                **self.mapping.get(parameter_types.get(k)),
             }
             for k, v in signature.parameters.items()
         }
         try:
             orjson.dumps(args)
             return args
-        except:
+        except orjson.JSONEncodeError:
             logger.warning(f"Ignoring {func}\n{args} as it is not json compatible")

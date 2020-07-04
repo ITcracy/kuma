@@ -5,6 +5,7 @@ import pandas as pd
 from .code_generator import PandasCodeGenerator
 from .storage import NotebookStorageBackend
 from .inspector import Inspector
+from .mapper import TypeMapper
 
 
 class KumaSession:
@@ -14,6 +15,7 @@ class KumaSession:
         a jupyter notebook with each cell representing user code.
         """
         self.store = NotebookStorageBackend()
+        self.mapper = TypeMapper("data/type_mapping.csv")
 
     def code(self, request: Dict[str, Any], save: bool = False, display_rows: int = 5) -> str:
         """
@@ -51,7 +53,7 @@ class KumaSession:
         -------
         dict
         """
-        inspector = Inspector(pd.DataFrame)
+        inspector = Inspector(pd.DataFrame, self.mapper.mapping)
         return inspector.functions
 
     @property
@@ -64,7 +66,7 @@ class KumaSession:
         -------
         dict
         """
-        inspector = Inspector(pd)
+        inspector = Inspector(pd, self.mapper.mapping)
         return inspector.functions
 
     def save(self, file_path: str):
