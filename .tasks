@@ -1,0 +1,25 @@
+# vim: set fenc=utf-8 ft=dosini:
+
+[project-run]
+command=poetry run uvicorn app.backend.main:app --reload
+cwd=$(VIM_ROOT)
+output=terminal
+pos=tab
+focus=0
+notify=echo
+
+[project-frontend-run]
+command=cd app/frontend/ && yarn start
+cwd=$(VIM_ROOT)
+output=terminal
+pos=tab
+focus=0
+notify=echo
+
+[project-build]
+command=cd app/frontend && yarn build
+cwd=$(VIM_ROOT)
+
+[alembic-upgrade]
+command=alembic upgrade head
+cwd=$(VIM_ROOT)

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Mapping, Optional, Union
+from typing import Dict, List, Mapping, Optional, Union
 
 from loguru import logger
 from sqlalchemy import Table, and_
